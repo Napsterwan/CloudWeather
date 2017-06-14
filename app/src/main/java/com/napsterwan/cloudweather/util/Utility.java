@@ -12,7 +12,7 @@ import org.json.JSONObject;
  * Created by Napsterwan on 2017/6/7.
  */
 
-public class Uitility {
+public class Utility {
     /***
      * 处理省份信息
      * @param response
