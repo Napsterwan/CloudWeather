@@ -1,6 +1,8 @@
 package com.napsterwan.cloudweather;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -13,11 +15,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.napsterwan.cloudweather.gson.Forecast;
 import com.napsterwan.cloudweather.gson.Weather;
 import com.napsterwan.cloudweather.util.Constant;
 import com.napsterwan.cloudweather.util.HttpUtil;
 import com.napsterwan.cloudweather.util.Utility;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -59,6 +65,8 @@ public class WeatherActivity extends AppCompatActivity {
 
     private LinearLayout forecastListLayout;
 
+    private ImageView bingPic;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,7 +88,14 @@ public class WeatherActivity extends AppCompatActivity {
         ultravioletInfo = (TextView) findViewById(R.id.suggestion_ultraviolet);
         scrollView = (ScrollView) findViewById(R.id.weather_scrollview);
         forecastListLayout = (LinearLayout) findViewById(R.id.dialy_forecast_layout);
+        bingPic = (ImageView) findViewById(R.id.weather_pic);
         scrollView.setVisibility(View.INVISIBLE);
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            View view = getWindow().getDecorView();
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = sharedPreferences.getString("weather", null);
@@ -91,12 +106,52 @@ public class WeatherActivity extends AppCompatActivity {
             Weather weather = Utility.handleWeatherResponse(weatherString);
             showWeatherInfo(weather);
         }
+        String bingPicUrl = sharedPreferences.getString("bingPic", null);
+        if (bingPicUrl == null) {
+            Glide.with(this).load(R.drawable.default_bing).into(bingPic);
+            requestBingPic();
+        } else {
+            Glide.with(this).load(bingPicUrl).into(bingPic);
+        }
+    }
+
+    private void requestBingPic() {
+        HttpUtil.sendOkhttpRequest(Constant.BING_PIC_URL, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseContent = response.body().string();
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject(responseContent);
+                    final String imageUrl = jsonObject.getJSONObject("data").getString("url");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (imageUrl != null) {
+                                PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit().putString("bingPic", imageUrl).apply();
+                                Glide.with(WeatherActivity.this).load(imageUrl).transition(new DrawableTransitionOptions().crossFade()).into(bingPic);
+                            } else {
+                                Glide.with(WeatherActivity.this).load(R.drawable.default_bing).into(bingPic);
+                            }
+                        }
+                    });
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
     }
 
     private void showWeatherInfo(Weather weather) {
         titleCity.setText(weather.basic.cityName);
         nowTemperature.setText(weather.now.temperature);
-        nowRefreshTime.setText(getString(R.string.refresh_time)+weather.basic.update.upateTime.substring(11,16));
+        nowRefreshTime.setText(getString(R.string.refresh_time) + weather.basic.update.upateTime.substring(11, 16));
         nowCondition.setText(weather.now.condition.info);
         aqiNum.setText(weather.aqi.city.aqi);
         pm25.setText(weather.aqi.city.pm25);
@@ -149,7 +204,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (weather != null && weather.status.equals("ok")) {
-                            PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit().putString("weather",responseContent).apply();
+                            PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit().putString("weather", responseContent).apply();
                             showWeatherInfo(weather);
                         } else {
                             Toast.makeText(WeatherActivity.this, R.string.request_weather_fail, Toast.LENGTH_SHORT).show();

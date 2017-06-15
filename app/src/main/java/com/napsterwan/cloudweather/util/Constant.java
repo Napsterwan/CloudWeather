@@ -13,4 +13,6 @@ public class Constant {
     public static final String IMAGE_URL = "http://oamkej5hl.bkt.clouddn.com/dev/weather/icon/";
 
     public static final String PNG_SUFFIX = ".png";
+
+    public static final String BING_PIC_URL = "https://bing.ioliu.cn/v1";
 }

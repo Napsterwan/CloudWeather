@@ -8,10 +8,17 @@
         android:background="#8000"
         tools:context="com.napsterwan.cloudweather.WeatherActivity">
 
+    <ImageView
+            android:id="@+id/weather_pic"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"/>
+
     <ScrollView
             android:id="@+id/weather_scrollview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
             android:scrollbars="none"
             android:overScrollMode="never">
 
