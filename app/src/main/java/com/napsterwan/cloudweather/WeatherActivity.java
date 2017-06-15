@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -67,6 +68,8 @@ public class WeatherActivity extends AppCompatActivity {
 
     private ImageView bingPic;
 
+    private SwipeRefreshLayout refreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +93,8 @@ public class WeatherActivity extends AppCompatActivity {
         forecastListLayout = (LinearLayout) findViewById(R.id.dialy_forecast_layout);
         bingPic = (ImageView) findViewById(R.id.weather_pic);
         scrollView.setVisibility(View.INVISIBLE);
+        refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
+        refreshLayout.setColorSchemeColors(R.color.colorPrimary);
 
         if (Build.VERSION.SDK_INT >= 21) {
             View view = getWindow().getDecorView();
@@ -99,11 +104,13 @@ public class WeatherActivity extends AppCompatActivity {
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = sharedPreferences.getString("weather", null);
+        final String weatherId;
         if (weatherString == null) {
-            String weatherId = getIntent().getStringExtra("weather_id");
+            weatherId = getIntent().getStringExtra("weather_id");
             requestWeather(weatherId);
         } else {
             Weather weather = Utility.handleWeatherResponse(weatherString);
+            weatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         }
         String bingPicUrl = sharedPreferences.getString("bingPic", null);
@@ -113,6 +120,13 @@ public class WeatherActivity extends AppCompatActivity {
         } else {
             Glide.with(this).load(bingPicUrl).into(bingPic);
         }
+
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(weatherId);
+            }
+        });
     }
 
     private void requestBingPic() {
@@ -162,7 +176,7 @@ public class WeatherActivity extends AppCompatActivity {
         fluInfo.setText(getString(R.string.flu_title) + weather.suggestion.flu.info);
         travelInfo.setText(getString(R.string.travel_title) + weather.suggestion.travel.info);
         ultravioletInfo.setText(getString(R.string.uv_title) + weather.suggestion.ultraviolet.info);
-
+        forecastListLayout.removeAllViews();
         for (Forecast forecast : weather.forecastList) {
             View view = LayoutInflater.from(this).inflate(R.layout.daily_forecast_item, forecastListLayout, false);
             TextView forecastDate = (TextView) view.findViewById(R.id.forecast_item_date);
@@ -192,6 +206,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this, R.string.request_weather_fail, Toast.LENGTH_SHORT).show();
+                        refreshLayout.setRefreshing(false);
                     }
                 });
             }
@@ -209,6 +224,7 @@ public class WeatherActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(WeatherActivity.this, R.string.request_weather_fail, Toast.LENGTH_SHORT).show();
                         }
+                        refreshLayout.setRefreshing(false);
                     }
                 });
             }
