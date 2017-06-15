@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Cloud Weather</string>
+    <string name="app_name">多云</string>
     <string name="aqi">空气质量</string>
     <string name="aqi_txt">AQI指数</string>
     <string name="pm25">PM2.5指数</string>
