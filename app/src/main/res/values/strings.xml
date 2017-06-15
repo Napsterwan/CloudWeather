@@ -14,4 +14,5 @@
     <string name="travel_title">旅游指数：</string>
     <string name="uv_title">紫外线指数：</string>
     <string name="refresh_time">更新于</string>
+    <string name="degree">°</string>
 </resources>

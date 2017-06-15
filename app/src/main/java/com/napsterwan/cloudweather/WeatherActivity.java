@@ -1,5 +1,6 @@
 package com.napsterwan.cloudweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -21,6 +22,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.napsterwan.cloudweather.gson.Forecast;
 import com.napsterwan.cloudweather.gson.Weather;
+import com.napsterwan.cloudweather.service.AutoUpdateService;
 import com.napsterwan.cloudweather.util.Constant;
 import com.napsterwan.cloudweather.util.HttpUtil;
 import com.napsterwan.cloudweather.util.Utility;
@@ -181,14 +183,14 @@ public class WeatherActivity extends AppCompatActivity {
 
     private void showWeatherInfo(Weather weather) {
         titleCity.setText(weather.basic.cityName);
-        nowTemperature.setText(weather.now.temperature);
+        nowTemperature.setText(weather.now.temperature + getString(R.string.degree));
         nowRefreshTime.setText(getString(R.string.refresh_time) + weather.basic.update.upateTime.substring(11, 16));
         nowCondition.setText(weather.now.condition.info);
         if (weather.aqi != null) {
             aqiLayout.setVisibility(View.VISIBLE);
             aqiNum.setText(weather.aqi.city.aqi);
             pm25.setText(weather.aqi.city.pm25);
-        }else {
+        } else {
             aqiLayout.setVisibility(View.GONE);
         }
         comfortInfo.setText(getString(R.string.comfort_title) + weather.suggestion.comfort.info);
@@ -215,6 +217,8 @@ public class WeatherActivity extends AppCompatActivity {
         String code = weather.now.condition.code;
         Glide.with(this).load(Constant.IMAGE_URL + code + Constant.PNG_SUFFIX).into(nowImage);
 
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
 
         scrollView.setVisibility(View.VISIBLE);
     }
@@ -255,7 +259,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)){
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawers();
             return;
         }
