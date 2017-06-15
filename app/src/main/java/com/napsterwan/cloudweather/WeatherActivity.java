@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -68,7 +70,13 @@ public class WeatherActivity extends AppCompatActivity {
 
     private ImageView bingPic;
 
-    private SwipeRefreshLayout refreshLayout;
+    public SwipeRefreshLayout refreshLayout;
+
+    public DrawerLayout drawerLayout;
+
+    private ImageView homeBtn;
+
+    private LinearLayout aqiLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +103,9 @@ public class WeatherActivity extends AppCompatActivity {
         scrollView.setVisibility(View.INVISIBLE);
         refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
         refreshLayout.setColorSchemeColors(R.color.colorPrimary);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        homeBtn = (ImageView) findViewById(R.id.title_home);
+        aqiLayout = (LinearLayout) findViewById(R.id.aqi_layout);
 
         if (Build.VERSION.SDK_INT >= 21) {
             View view = getWindow().getDecorView();
@@ -125,6 +136,12 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 requestWeather(weatherId);
+            }
+        });
+        homeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
             }
         });
     }
@@ -167,8 +184,13 @@ public class WeatherActivity extends AppCompatActivity {
         nowTemperature.setText(weather.now.temperature);
         nowRefreshTime.setText(getString(R.string.refresh_time) + weather.basic.update.upateTime.substring(11, 16));
         nowCondition.setText(weather.now.condition.info);
-        aqiNum.setText(weather.aqi.city.aqi);
-        pm25.setText(weather.aqi.city.pm25);
+        if (weather.aqi != null) {
+            aqiLayout.setVisibility(View.VISIBLE);
+            aqiNum.setText(weather.aqi.city.aqi);
+            pm25.setText(weather.aqi.city.pm25);
+        }else {
+            aqiLayout.setVisibility(View.GONE);
+        }
         comfortInfo.setText(getString(R.string.comfort_title) + weather.suggestion.comfort.info);
         carWashInfo.setText(getString(R.string.carwash_title) + weather.suggestion.carWash.info);
         dressSuggestion.setText(getString(R.string.dress_title) + weather.suggestion.dressSuggestion.info);
@@ -197,7 +219,7 @@ public class WeatherActivity extends AppCompatActivity {
         scrollView.setVisibility(View.VISIBLE);
     }
 
-    private void requestWeather(String weatherId) {
+    public void requestWeather(String weatherId) {
         String url = Constant.WEATHER_URL + "city=" + weatherId + "&key=" + Constant.WEATHER_KEY;
         HttpUtil.sendOkhttpRequest(url, new Callback() {
             @Override
@@ -229,5 +251,14 @@ public class WeatherActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)){
+            drawerLayout.closeDrawers();
+            return;
+        }
+        super.onBackPressed();
     }
 }
