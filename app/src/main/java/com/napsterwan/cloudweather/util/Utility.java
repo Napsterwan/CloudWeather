@@ -1,8 +1,11 @@
 package com.napsterwan.cloudweather.util;
 
+import com.google.gson.Gson;
+
 import com.napsterwan.cloudweather.db.City;
 import com.napsterwan.cloudweather.db.Country;
 import com.napsterwan.cloudweather.db.Province;
+import com.napsterwan.cloudweather.gson.Weather;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,5 +78,21 @@ public class Utility {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * 处理天气请求信息
+     */
+    public static Weather handleWeatherResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray heWeather5 = jsonObject.getJSONArray("HeWeather5");
+            String weatherContent = heWeather5.getJSONObject(0).toString();
+            return new Gson().fromJson(weatherContent, Weather.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
 }

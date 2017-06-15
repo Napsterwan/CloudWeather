@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Cloud Weather</string>
+    <string name="aqi">空气质量</string>
+    <string name="aqi_txt">AQI指数</string>
+    <string name="pm25">PM2.5指数</string>
+    <string name="suggestion_title">生活建议</string>
+    <string name="daily_forecast">天气预报</string>\
+    <string name="request_weather_fail">获取天气信息失败</string>
+    <string name="comfort_title">舒适度：</string>
+    <string name="carwash_title">洗车指数：</string>
+    <string name="sport_title">运动指数：</string>
+    <string name="dress_title">穿衣指数：</string>
+    <string name="flu_title">感冒指数：</string>
+    <string name="travel_title">旅游指数：</string>
+    <string name="uv_title">紫外线指数：</string>
+    <string name="refresh_time">更新于</string>
 </resources>
